@@ -1,8 +1,8 @@
 package com.example.azoov_backend.controller;
 
-import com.minierp.model.Customer;
-import com.minierp.model.User;
-import com.minierp.service.CustomerService;
+import com.example.azoov_backend.model.Customer;
+import com.example.azoov_backend.model.User;
+import com.example.azoov_backend.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,7 +32,8 @@ public class CustomerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer customer, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer customer,
+            @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(customerService.updateCustomer(id, customer, user.getBusiness().getId()));
     }
 
@@ -47,4 +48,3 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.searchCustomers(user.getBusiness().getId(), q));
     }
 }
-

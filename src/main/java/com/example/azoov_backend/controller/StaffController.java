@@ -1,8 +1,8 @@
 package com.example.azoov_backend.controller;
 
-import com.minierp.model.Staff;
-import com.minierp.model.User;
-import com.minierp.service.StaffService;
+import com.example.azoov_backend.model.Staff;
+import com.example.azoov_backend.model.User;
+import com.example.azoov_backend.service.StaffService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

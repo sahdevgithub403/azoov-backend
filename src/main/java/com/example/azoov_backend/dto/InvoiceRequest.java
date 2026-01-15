@@ -1,4 +1,4 @@
-package com.minierp.dto;
+package com.example.azoov_backend.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

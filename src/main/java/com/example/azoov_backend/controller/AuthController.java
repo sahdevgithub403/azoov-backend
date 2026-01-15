@@ -1,8 +1,8 @@
-package com.minierp.controller;
+package com.example.azoov_backend.controller;
 
-import com.minierp.dto.LoginRequest;
-import com.minierp.dto.RegisterRequest;
-import com.minierp.service.AuthService;
+import com.example.azoov_backend.dto.LoginRequest;
+import com.example.azoov_backend.dto.RegisterRequest;
+import com.example.azoov_backend.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,5 +26,9 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
-}
 
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Object>> getMe(@RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok(authService.getMe(token.substring(7)));
+    }
+}

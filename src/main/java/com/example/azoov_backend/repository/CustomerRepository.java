@@ -1,6 +1,6 @@
 package com.example.azoov_backend.repository;
 
-import com.minierp.model.Customer;
+import com.example.azoov_backend.model.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

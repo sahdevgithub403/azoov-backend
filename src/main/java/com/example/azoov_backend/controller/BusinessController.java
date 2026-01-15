@@ -1,8 +1,8 @@
-package com.minierp.controller;
+package com.example.azoov_backend.controller;
 
-import com.minierp.model.Business;
-import com.minierp.model.User;
-import com.minierp.service.BusinessService;
+import com.example.azoov_backend.model.Business;
+import com.example.azoov_backend.model.User;
+import com.example.azoov_backend.service.BusinessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,4 +24,3 @@ public class BusinessController {
         return ResponseEntity.ok(businessService.updateBusiness(user.getBusiness().getId(), business));
     }
 }
-

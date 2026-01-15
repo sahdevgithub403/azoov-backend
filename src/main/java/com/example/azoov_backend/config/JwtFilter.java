@@ -1,7 +1,7 @@
 package com.example.azoov_backend.config;
 
-import com.minierp.service.AuthService;
-import com.minierp.util.JwtUtil;
+import com.example.azoov_backend.service.AuthService;
+import com.example.azoov_backend.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

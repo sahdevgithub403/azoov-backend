@@ -2,10 +2,11 @@ package com.example.azoov_backend.controller;
 
 import com.example.azoov_backend.model.Invoice;
 import com.example.azoov_backend.model.User;
-import com.minierp.dto.InvoiceRequest;
+import com.example.azoov_backend.dto.InvoiceRequest;
 
-import com.minierp.service.InvoiceService;
+import com.example.azoov_backend.service.InvoiceService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,12 +31,14 @@ public class InvoiceController {
     }
 
     @PostMapping
-    public ResponseEntity<Invoice> createInvoice(@Valid @RequestBody InvoiceRequest request, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Invoice> createInvoice(@Valid @RequestBody InvoiceRequest request,
+            @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(invoiceService.createInvoice(request, user.getBusiness().getId(), user.getEmail()));
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<Invoice> updateInvoiceStatus(@PathVariable Long id, @RequestParam String status, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Invoice> updateInvoiceStatus(@PathVariable Long id, @RequestParam String status,
+            @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(invoiceService.updateInvoiceStatus(id, status, user.getBusiness().getId()));
     }
 
@@ -45,4 +48,3 @@ public class InvoiceController {
         return ResponseEntity.noContent().build();
     }
 }
-

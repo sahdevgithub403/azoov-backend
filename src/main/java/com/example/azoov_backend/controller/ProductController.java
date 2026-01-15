@@ -1,9 +1,9 @@
 package com.example.azoov_backend.controller;
 
-import com.minierp.dto.ProductRequest;
-import com.minierp.model.Product;
-import com.minierp.model.User;
-import com.minierp.service.ProductService;
+import com.example.azoov_backend.dto.ProductRequest;
+import com.example.azoov_backend.model.Product;
+import com.example.azoov_backend.model.User;
+import com.example.azoov_backend.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

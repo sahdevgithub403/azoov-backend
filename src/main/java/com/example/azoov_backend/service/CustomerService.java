@@ -1,9 +1,9 @@
-package com.minierp.service;
+package com.example.azoov_backend.service;
 
-import com.minierp.model.Business;
-import com.minierp.model.Customer;
-import com.minierp.repository.BusinessRepository;
-import com.minierp.repository.CustomerRepository;
+import com.example.azoov_backend.model.Business;
+import com.example.azoov_backend.model.Customer;
+import com.example.azoov_backend.repository.BusinessRepository;
+import com.example.azoov_backend.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

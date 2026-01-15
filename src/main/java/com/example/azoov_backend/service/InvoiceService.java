@@ -1,7 +1,7 @@
 package com.example.azoov_backend.service;
 
 import com.example.azoov_backend.dto.InvoiceItemRequest;
-import com.minierp.dto.InvoiceRequest;
+import com.example.azoov_backend.dto.InvoiceRequest;
 import com.example.azoov_backend.model.*;
 import com.example.azoov_backend.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,6 @@ import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -60,7 +59,7 @@ public class InvoiceService {
         for (InvoiceItemRequest itemRequest : request.getItems()) {
             InvoiceItem item = new InvoiceItem();
             item.setInvoice(invoice);
-            
+
             if (itemRequest.getProductId() != null) {
                 Product product = productRepository.findById(itemRequest.getProductId())
                         .filter(p -> p.getBusiness().getId().equals(businessId))
@@ -72,12 +71,12 @@ public class InvoiceService {
                     productRepository.save(product);
                 }
             }
-            
+
             item.setDescription(itemRequest.getDescription());
             item.setQuantity(itemRequest.getQuantity());
             item.setUnitPrice(itemRequest.getUnitPrice());
             item.setTotal(itemRequest.getUnitPrice().multiply(BigDecimal.valueOf(itemRequest.getQuantity())));
-            
+
             invoice.getItems().add(item);
             subtotal = subtotal.add(item.getTotal());
         }
@@ -121,4 +120,3 @@ public class InvoiceService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
-

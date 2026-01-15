@@ -1,6 +1,6 @@
 package com.example.azoov_backend.dto;
 
-import com.minierp.model.Role;
+import com.example.azoov_backend.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

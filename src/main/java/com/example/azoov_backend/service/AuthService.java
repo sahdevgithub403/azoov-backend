@@ -1,8 +1,14 @@
 package com.example.azoov_backend.service;
 
+import com.example.azoov_backend.dto.LoginRequest;
+import com.example.azoov_backend.dto.RegisterRequest;
 import com.example.azoov_backend.repository.BusinessRepository;
+import com.example.azoov_backend.model.Business;
+import com.example.azoov_backend.model.Role;
+import com.example.azoov_backend.model.User;
 import com.example.azoov_backend.repository.UserRepository;
-import com.minierp.util.JwtUtil;
+import com.example.azoov_backend.util.JwtUtil;
+import jakarta.validation.Valid;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,8 +31,8 @@ public class AuthService implements UserDetailsService {
     private final AuthenticationManager authenticationManager;
 
     public AuthService(UserRepository userRepository, BusinessRepository businessRepository,
-                       PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
-                       @Lazy AuthenticationManager authenticationManager) {
+            PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
+            @Lazy AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.businessRepository = businessRepository;
         this.passwordEncoder = passwordEncoder;
@@ -41,7 +47,7 @@ public class AuthService implements UserDetailsService {
     }
 
     @Transactional
-    public Map<String, Object> register(RegisterRequest request) {
+    public Map<String, Object> register(@Valid @org.jetbrains.annotations.UnknownNullability RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
@@ -68,10 +74,9 @@ public class AuthService implements UserDetailsService {
         return response;
     }
 
-    public Map<String, Object> login(LoginRequest request) {
+    public Map<String, Object> login(@Valid @org.jetbrains.annotations.UnknownNullability LoginRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
         User user = (User) loadUserByUsername(request.getEmail());
         user.setLastLogin(new java.util.Date());
@@ -84,5 +89,14 @@ public class AuthService implements UserDetailsService {
         response.put("user", user);
         return response;
     }
-}
 
+    public Map<String, Object> getMe(String token) {
+        String email = jwtUtil.extractUsername(token);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", user);
+        return response;
+    }
+}
