@@ -29,15 +29,21 @@ public class AuthService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
+    private final com.example.azoov_backend.repository.PasswordResetOTPRepository otpRepository;
 
     public AuthService(UserRepository userRepository, BusinessRepository businessRepository,
             PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
-            @Lazy AuthenticationManager authenticationManager) {
+            @Lazy AuthenticationManager authenticationManager,
+            EmailService emailService,
+            com.example.azoov_backend.repository.PasswordResetOTPRepository otpRepository) {
         this.userRepository = userRepository;
         this.businessRepository = businessRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
+        this.emailService = emailService;
+        this.otpRepository = otpRepository;
     }
 
     @Override
@@ -102,37 +108,59 @@ public class AuthService implements UserDetailsService {
 
     @Transactional
     public Map<String, Object> forgotPassword(String email) {
-        User user = userRepository.findByEmail(email)
+        // Verify user exists (throws exception if not found)
+        userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with this email"));
 
-        // Generate a reset token (in production, use UUID and store with expiry)
-        String resetToken = jwtUtil.generateToken(user);
+        // Delete any existing OTPs for this email
+        otpRepository.deleteByEmail(email);
 
-        // In production, send email with reset link
-        // For now, we'll return the token in the response
-        System.out.println("Password reset token for " + email + ": " + resetToken);
+        // Generate 6-digit OTP
+        String otp = String.format("%06d", new java.util.Random().nextInt(999999));
+
+        // Create OTP entity with 10-minute expiry
+        com.example.azoov_backend.model.PasswordResetOTP otpEntity = new com.example.azoov_backend.model.PasswordResetOTP();
+        otpEntity.setEmail(email);
+        otpEntity.setOtp(otp);
+        otpEntity.setExpiryTime(java.time.LocalDateTime.now().plusMinutes(10));
+        otpEntity.setUsed(false);
+        otpRepository.save(otpEntity);
+
+        // Send OTP via email
+        emailService.sendOTPEmail(email, otp);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Password reset instructions sent to your email");
-        response.put("resetToken", resetToken); // Remove this in production
+        response.put("message", "OTP has been sent to your email");
+        response.put("email", email);
         return response;
     }
 
     @Transactional
-    public Map<String, Object> resetPassword(String token, String newPassword) {
-        try {
-            String email = jwtUtil.extractUsername(token);
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+    public Map<String, Object> verifyOTPAndResetPassword(String email, String otp, String newPassword) {
+        // Find OTP
+        com.example.azoov_backend.model.PasswordResetOTP otpEntity = otpRepository
+                .findByEmailAndOtpAndUsedFalse(email, otp)
+                .orElseThrow(() -> new RuntimeException("Invalid OTP"));
 
-            user.setPassword(passwordEncoder.encode(newPassword));
-            userRepository.save(user);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Password reset successfully");
-            return response;
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid or expired reset token");
+        // Check if expired
+        if (otpEntity.isExpired()) {
+            throw new RuntimeException("OTP has expired. Please request a new one.");
         }
+
+        // Find user
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // Mark OTP as used
+        otpEntity.setUsed(true);
+        otpRepository.save(otpEntity);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Password reset successfully");
+        return response;
     }
 }
