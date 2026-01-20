@@ -16,6 +16,7 @@ import java.util.List;
 public class ProductService {
     private final ProductRepository productRepository;
     private final BusinessRepository businessRepository;
+    private final NotificationService notificationService;
 
     public List<Product> getAllProducts(Long businessId) {
         return productRepository.findByBusinessId(businessId);
@@ -43,7 +44,15 @@ public class ProductService {
         product.setImage(request.getImage());
         product.setBusiness(business);
 
-        return productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+
+        // Send WebSocket notification
+        notificationService.sendToAll(
+                NotificationService.NotificationType.SUCCESS,
+                "Product Created",
+                "New product '" + savedProduct.getName() + "' has been added to inventory");
+
+        return savedProduct;
     }
 
     @Transactional
@@ -58,13 +67,28 @@ public class ProductService {
         product.setLowStockThreshold(request.getLowStockThreshold());
         product.setImage(request.getImage());
 
-        return productRepository.save(product);
+        Product updatedProduct = productRepository.save(product);
+
+        // Send WebSocket notification
+        notificationService.sendToAll(
+                NotificationService.NotificationType.INFO,
+                "Product Updated",
+                "Product '" + updatedProduct.getName() + "' has been updated");
+
+        return updatedProduct;
     }
 
     @Transactional
     public void deleteProduct(Long id, Long businessId) {
         Product product = getProductById(id, businessId);
+        String productName = product.getName();
         productRepository.delete(product);
+
+        // Send WebSocket notification
+        notificationService.sendToAll(
+                NotificationService.NotificationType.WARNING,
+                "Product Deleted",
+                "Product '" + productName + "' has been removed from inventory");
     }
 
     public List<Product> getLowStockProducts(Long businessId) {
@@ -76,4 +100,3 @@ public class ProductService {
         return productRepository.findByBusinessIdAndStockLevelLessThanEqual(businessId, threshold);
     }
 }
-

@@ -12,9 +12,13 @@ import java.util.Optional;
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findByBusinessId(Long businessId);
+
     Optional<Invoice> findByInvoiceNumber(String invoiceNumber);
+
     List<Invoice> findByBusinessIdAndIssuedDateBetween(Long businessId, Date startDate, Date endDate);
+
     @Query("SELECT SUM(i.total) FROM Invoice i WHERE i.business.id = :businessId AND i.status = 'Paid'")
     Double getTotalRevenueByBusinessId(Long businessId);
-}
 
+    long countByBusinessId(Long businessId);
+}

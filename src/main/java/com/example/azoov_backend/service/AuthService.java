@@ -60,7 +60,7 @@ public class AuthService implements UserDetailsService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setRole(request.getRole() != null ? request.getRole() : Role.STAFF);
+        user.setRole(request.getRole() != null ? request.getRole() : Role.SALES);
         user.setBusiness(business);
         user.setActive(true);
 
@@ -98,5 +98,41 @@ public class AuthService implements UserDetailsService {
         Map<String, Object> response = new HashMap<>();
         response.put("user", user);
         return response;
+    }
+
+    @Transactional
+    public Map<String, Object> forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with this email"));
+
+        // Generate a reset token (in production, use UUID and store with expiry)
+        String resetToken = jwtUtil.generateToken(user);
+
+        // In production, send email with reset link
+        // For now, we'll return the token in the response
+        System.out.println("Password reset token for " + email + ": " + resetToken);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Password reset instructions sent to your email");
+        response.put("resetToken", resetToken); // Remove this in production
+        return response;
+    }
+
+    @Transactional
+    public Map<String, Object> resetPassword(String token, String newPassword) {
+        try {
+            String email = jwtUtil.extractUsername(token);
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Password reset successfully");
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid or expired reset token");
+        }
     }
 }

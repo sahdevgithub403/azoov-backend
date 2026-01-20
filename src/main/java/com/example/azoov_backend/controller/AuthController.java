@@ -1,7 +1,9 @@
 package com.example.azoov_backend.controller;
 
+import com.example.azoov_backend.dto.ForgotPasswordRequest;
 import com.example.azoov_backend.dto.LoginRequest;
 import com.example.azoov_backend.dto.RegisterRequest;
+import com.example.azoov_backend.dto.ResetPasswordRequest;
 import com.example.azoov_backend.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +32,15 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMe(@RequestHeader("Authorization") String token) {
         return ResponseEntity.ok(authService.getMe(token.substring(7)));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, Object>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.forgotPassword(request.getEmail()));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, Object>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(authService.resetPassword(request.getToken(), request.getNewPassword()));
     }
 }
