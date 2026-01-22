@@ -6,6 +6,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +20,7 @@ import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+    private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
     private final JwtUtil jwtUtil;
     private final AuthService authService;
 
@@ -39,20 +42,31 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        userEmail = jwtUtil.extractUsername(jwt);
 
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = authService.loadUserByUsername(userEmail);
-            if (jwtUtil.validateToken(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+        try {
+            userEmail = jwtUtil.extractUsername(jwt);
+
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = authService.loadUserByUsername(userEmail);
+                if (jwtUtil.validateToken(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            logger.error("JWT signature validation failed: {}", e.getMessage());
+            logger.debug(
+                    "This usually means the token was signed with a different secret key. Please log in again to get a new token.");
+            // Continue without authentication - the request will be handled as
+            // unauthenticated
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            logger.error("JWT token has expired: {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("JWT token validation error: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
     }
 }
-
